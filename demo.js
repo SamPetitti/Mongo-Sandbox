@@ -1,8 +1,9 @@
 const { MongoClient } = require('mongodb');
-const dotenv = require("dotenv");
+require("dotenv").config();
 const db = "sample_airbnb";
 const collection = "listingsAndReviews";
 async function main() {
+    var userName = process.env.DB_USERNAME;
     const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@sp-training.uoozx.mongodb.net/?retryWrites=true&w=majority`;
 
     const client = new MongoClient(uri);
