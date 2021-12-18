@@ -1,8 +1,9 @@
 const { MongoClient } = require('mongodb');
+const dotenv = require("dotenv");
 const db = "sample_airbnb";
 const collection = "listingsAndReviews";
 async function main() {
-    const uri = "mongodb+srv://demo:xx@sp-training.uoozx.mongodb.net/?retryWrites=true&w=majority";
+    const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@sp-training.uoozx.mongodb.net/?retryWrites=true&w=majority`;
 
     const client = new MongoClient(uri);
 
@@ -30,7 +31,16 @@ async function main() {
         //     }
         // ]);
         //await findListingByName(client, "Cleveland Loft");
-        await findListingsWithMinimumBedroomsBathroomsAndMostRecentReviews(client, { minimumNumberOfBedrooms: 3, minimumNumberOfBedrooms: 2, maximumNumberOfResults: 5 });
+
+        //await findListingsWithMinimumBedroomsBathroomsAndMostRecentReviews(client, { minimumNumberOfBedrooms: 3, minimumNumberOfBedrooms: 2, maximumNumberOfResults: 5 });
+
+        await listDatabases(client);
+        await updateListingByName(client, "Cleveland Loft", {
+            name: "Cleveland Loft",
+            summary: "A loft in the land",
+            bedrooms: 66,
+            bathrooms: 4543
+        });
 
 
     } catch (e) {
@@ -41,8 +51,11 @@ async function main() {
 
 }
 
+//*******run program 
 main().catch(console.error);
 
+
+//*********create
 async function createMultipleListings(client, newListings) {
     const result = await client.db("sample_airbnb")
         .collection("listingsAndReviews")
@@ -59,6 +72,8 @@ async function createListing(client, newListing) {
 
 }
 
+
+//**********read
 async function findListingByName(client, nameOfListing) {
     const result = await client.db("sample_airbnb").collection("listingsAndReviews")
         .findOne({ name: nameOfListing });
@@ -86,6 +101,20 @@ async function findListingsWithMinimumBedroomsBathroomsAndMostRecentReviews(
     const result = await cursor.toArray();
     console.log(result);
 }
+
+//****update */
+
+const updateListingByName = async (client, nameOfListing, updatedListing) => {
+    const result = await client.db("sample_airbnb")
+        .collection("listingsAndReviews")
+        .updateOne({ name: nameOfListing }, { $set: updatedListing });
+
+    console.log(`${result.matchedCount} matched documents`);
+    console.log(result);
+}
+
+
+
 
 async function listDatabases(client) {
     const dbList = await client.db().admin().listDatabases();
