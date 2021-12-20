@@ -1,4 +1,6 @@
 const { MongoClient } = require('mongodb');
+// import * as mongodb from 'mongodb';
+// const MongoClient = mongodb.MongoClient;
 require("dotenv").config();
 const db = "sample_airbnb";
 const collection = "listingsAndReviews";
@@ -35,14 +37,21 @@ async function main() {
 
         //await findListingsWithMinimumBedroomsBathroomsAndMostRecentReviews(client, { minimumNumberOfBedrooms: 3, minimumNumberOfBedrooms: 2, maximumNumberOfResults: 5 });
 
-        await listDatabases(client);
-        await updateListingByName(client, "Cleveland Loft", {
-            name: "Cleveland Loft",
-            summary: "A loft in the land",
-            bedrooms: 66,
-            bathrooms: 4543
-        });
+        // await updateListingByName(client, "Cleveland Loft", {
+        //     name: "Cleveland Loft",
+        //     summary: "A loft in the land",
+        //     bedrooms: 66,
+        //     bathrooms: 4543
+        // });
+        // await upsertListingByName(client, "Simsbury Home", {
+        //     name: "Simsbury Home",
+        //     summary: "A home in CT",
+        //     bedrooms: 3,
+        //     bathrooms: 2
+        // });
+        await updateAllListingsToIncludePropertyType(client);
 
+        await listDatabases(client);
 
     } catch (e) {
         console.error(e);
@@ -105,6 +114,19 @@ async function findListingsWithMinimumBedroomsBathroomsAndMostRecentReviews(
 
 //****update */
 
+async function upsertListingByName(client, nameOfListing, updatedListing) {
+    const result = await client.db("sample_airbnb")
+        .collection("listingsAndReviews")
+        .updateOne({ name: nameOfListing }, { $set: updatedListing }, { upsert: true });
+    console.log(`${result.matchedCount} matched documents`);
+    if (result.upsertedCount > 0) {
+        console.log(`One document was inserted with the id ${result.upsertedId}`);
+    } else {
+        console.log(`${result.modifiedCount} document(s) was/were updated`);
+    }
+
+}
+
 const updateListingByName = async (client, nameOfListing, updatedListing) => {
     const result = await client.db("sample_airbnb")
         .collection("listingsAndReviews")
@@ -113,6 +135,20 @@ const updateListingByName = async (client, nameOfListing, updatedListing) => {
     console.log(`${result.matchedCount} matched documents`);
     console.log(result);
 }
+
+const updateAllListingsToIncludePropertyType = async (client) => {
+    const result = await client.db("sample_airbnb").collection("listingsAndReviews").updateMany({
+        property_type: { $exists: false }
+    },
+        {
+            $set: { property_type: "Unknown" }
+        });
+
+    console.log(`${result.matchedCount} document(s) matched the result criteria`);
+    console.log(`${result.modifiedCount} document(s) was/were modified`);
+}
+
+//******DELETE */
 
 
 
